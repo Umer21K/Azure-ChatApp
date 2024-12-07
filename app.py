@@ -1,5 +1,5 @@
-# from gevent import monkey
-# monkey.patch_all()
+from gevent import monkey
+monkey.patch_all()
 
 from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask import Flask, request, jsonify, send_from_directory
@@ -15,7 +15,7 @@ import os
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 app = Flask(__name__, static_folder='static', template_folder='static')
 app.logger.setLevel(logging.INFO)
-socketio = SocketIO(app, async_mode="eventlet",cors_allowed_origins='*')
+socketio = SocketIO(app, async_mode="gevent",cors_allowed_origins='*')
 CORS(app)  # Enable CORS for frontend-backend communication
 
 def handle_error(message, error, status_code=500):
