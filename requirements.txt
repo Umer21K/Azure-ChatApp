@@ -13,6 +13,8 @@ charset-normalizer==3.4.0
 click==8.1.7
 colorama==0.4.6
 cryptography==44.0.0
+dnspython==2.7.0
+eventlet==0.38.0
 Flask==3.1.0
 Flask-Cors==5.0.0
 Flask-SocketIO==5.4.1
@@ -27,6 +29,7 @@ googleapis-common-protos==1.66.0
 greenlet==3.1.1
 grpcio==1.68.1
 grpcio-status==1.68.1
+gunicorn==23.0.0
 h11==0.14.0
 httplib2==0.22.0
 idna==3.10
@@ -36,6 +39,7 @@ Jinja2==3.1.4
 MarkupSafe==3.0.2
 msal==1.31.1
 msal-extensions==1.2.0
+packaging==24.2
 portalocker==2.10.1
 proto-plus==1.25.0
 protobuf==5.29.1
