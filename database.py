@@ -7,6 +7,20 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+import logging
+from opencensus.ext.azure.log_exporter import AzureLogHandler
+
+APPLICATIONINSIGHTS_CONNECTION_STRING ='InstrumentationKey=e5bb7e7a-1331-4991-8b90-eddfeca9881c;IngestionEndpoint=https://eastasia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://eastasia.livediagnostics.monitor.azure.com/;ApplicationId=cf709b89-775f-40cf-a02f-9b5e3d3f5626'
+
+azure_logger = logging.getLogger(__name__)
+azure_logger.addHandler(AzureLogHandler(connection_string=APPLICATIONINSIGHTS_CONNECTION_STRING))
+azure_logger.setLevel(logging.INFO)
+stream_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s ')
+stream_handler.setFormatter(formatter)
+azure_logger.addHandler(stream_handler)
+
+
 # Cosmos DB configuration
 URL = "https://batey-db.documents.azure.com:443/"
 KEY = os.environ['COSMO_KEY']
@@ -56,6 +70,7 @@ def add_user(name, password, email):
             users.upsert_item(user_item)
 
             create_room(str(new_id), '1')
+            azure_logger.critical(f"New sign up: {name}")
             return user_item
         else:
             return None
@@ -83,6 +98,7 @@ def validate_user(password, email):
                     'username': item['name'],
                     'email': item['email']
                 }
+                azure_logger.critical(f"New log in: {item['name']}")
                 return user_info  # Return user info without the password
             else:
                 return None
