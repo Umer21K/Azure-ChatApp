@@ -34115,7 +34115,7 @@ var ChatPageComponent = class _ChatPageComponent {
         }
       } catch (error) {
         this.alertService.emitErrorEvent("Network Error", `Unable to connect to the server.${error.message}`);
-        console.log("Network Error", `Unable to connect to the server.${error}`);
+        console.log("Network Error", `Unable to connect to the server.${JSON.stringify(error)}`);
       }
     });
   }
@@ -34135,7 +34135,7 @@ var ChatPageComponent = class _ChatPageComponent {
           this.fileCache[this.selectedChat.roomid] = this.files;
         } catch (error) {
           this.alertService.emitErrorEvent("Network Error", `Unable to connect to the server.${error.message}`);
-          console.log("Network Error", `Unable to connect to the server.${error}`);
+          console.log("Network Error", `Unable to connect to the server.${JSON.stringify(error)}`);
         }
       }
     });
@@ -34162,7 +34162,7 @@ var ChatPageComponent = class _ChatPageComponent {
         }
       } catch (error) {
         this.alertService.emitErrorEvent("Network Error", `Unable to connect to the server.${error.message}`);
-        console.log("Network Error", `Unable to connect to the server.${error}`);
+        console.log("Network Error", `Unable to connect to the server.${JSON.stringify(error)}`);
       }
     });
   }
@@ -34188,7 +34188,7 @@ var ChatPageComponent = class _ChatPageComponent {
           }
         } catch (error) {
           this.alertService.emitErrorEvent("Network Error", `Unable to connect to the server.${error.message}`);
-          console.log("Network Error", `Unable to connect to the server.${error}`);
+          console.log("Network Error", `Unable to connect to the server.${JSON.stringify(error)}`);
         }
       }
     });
@@ -34203,10 +34203,11 @@ var ChatPageComponent = class _ChatPageComponent {
           if (response.success) {
             this.allUsers = response.data;
           } else {
+            this.alertService.emitErrorEvent("Error", response.message);
           }
         } catch (error) {
           this.alertService.emitErrorEvent("Network Error", `Unable to connect to the server.${error.message}`);
-          console.log("Network Error", `Unable to connect to the server.${error}`);
+          console.log("Network Error", `Unable to connect to the server.${JSON.stringify(error)}`);
         }
       } else {
         this.selectedNewChatId = "-1";
@@ -36939,7 +36940,7 @@ var LoginComponent = class _LoginComponent {
         }
       } catch (error) {
         this.alertService.emitErrorEvent("Network Error", `Unable to connect to the server.${error.message}`);
-        console.log("Network Error", `Unable to connect to the server.${error}`);
+        console.log("Network Error", `Unable to connect to the server.${JSON.stringify(error)}`);
       }
     });
   }
@@ -37172,7 +37173,7 @@ var RegisterComponent = class _RegisterComponent {
         }
       } catch (error) {
         this.alertService.emitErrorEvent("Network Error", `Unable to connect to the server.${error.message}`);
-        console.log("Network Error", `Unable to connect to the server.${error}`);
+        console.log("Network Error", `Unable to connect to the server.${JSON.stringify(error)}`);
       }
     });
   }
@@ -39714,4 +39715,4 @@ var AppModule = class _AppModule {
 platformBrowser().bootstrapModule(AppModule, {
   ngZoneEventCoalescing: true
 }).catch((err) => console.error(err));
-//# sourceMappingURL=main-EFQAE4EV.js.map
+//# sourceMappingURL=main-LJLSHEJD.js.map
