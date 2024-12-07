@@ -10,7 +10,8 @@ load_dotenv()
 import logging
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 
-APPLICATIONINSIGHTS_CONNECTION_STRING ='InstrumentationKey=e5bb7e7a-1331-4991-8b90-eddfeca9881c;IngestionEndpoint=https://eastasia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://eastasia.livediagnostics.monitor.azure.com/;ApplicationId=cf709b89-775f-40cf-a02f-9b5e3d3f5626'
+APPLICATIONINSIGHTS_CONNECTION_STRING = os.environ['CONNECT_STRING']
+
 
 azure_logger = logging.getLogger(__name__)
 azure_logger.addHandler(AzureLogHandler(connection_string=APPLICATIONINSIGHTS_CONNECTION_STRING))
