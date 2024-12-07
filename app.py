@@ -31,7 +31,7 @@ def serve_angular(path=None):
     return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/api/add_user', methods=['POST'])
-async def add_user_api():
+def add_user_api():
     try:
         data = request.json
         app.logger.info(f"Add user API called with data: {data}")
@@ -39,7 +39,7 @@ async def add_user_api():
         password = data.get('password')
         email = data.get('email')
 
-        user_info = await add_user(name, password, email)
+        user_info = add_user(name, password, email)
         
         if user_info:
             app.logger.info(f"User {name} added successfully with ID {user_info['id']}")
@@ -52,14 +52,14 @@ async def add_user_api():
         return handle_error("Error adding user", e)
 
 @app.route('/api/validate_user', methods=['POST'])
-async def validate_user_api():
+def validate_user_api():
     try:
         data = request.json
         app.logger.info(f"Validate user API called with data: {data}")
         email = data.get('email')
         password = data.get('password')
         
-        user_info = await validate_user(password, email)
+        user_info = validate_user(password, email)
         
         if user_info:
             app.logger.info(f"User {email} validated successfully")
@@ -72,9 +72,9 @@ async def validate_user_api():
         return handle_error("Error validating user", e)
 
 @app.route('/api/get_other_users/<userid>', methods=['GET'])
-async def get_other_users_api(userid):
+def get_other_users_api(userid):
     try:
-        users = await get_other_users(userid)
+        users = get_other_users(userid)
 
         app.logger.info(f"Fetching other users for user ID: {userid}")
         # Return success response
@@ -86,11 +86,11 @@ async def get_other_users_api(userid):
         return handle_error("Error getting users", e)
 
 @app.route('/api/get_rooms/<userid>', methods=['GET'])
-async def get_rooms_api(userid):
+def get_rooms_api(userid):
     try:
         app.logger.info(f"Fetching rooms for user ID: {userid}")
         # Fetch rooms for the given user ID
-        rooms = await get_rooms(userid)
+        rooms = get_rooms(userid)
         app.logger.info(f"Found {len(rooms)} rooms for user ID: {userid}")
 
         # Return success response with room data
@@ -102,10 +102,10 @@ async def get_rooms_api(userid):
 
 
 @app.route('/api/get_messages/<roomid>', methods=['GET'])
-async def get_messages_api(roomid):
+def get_messages_api(roomid):
     try:
         app.logger.info(f"Fetching messages for room ID: {roomid}")
-        messages = await get_messages(roomid)
+        messages = get_messages(roomid)
         app.logger.info(f"Found {len(messages)} messages for room ID: {roomid}")
 
         return jsonify({'success': True, 'data': messages}), 200
@@ -115,14 +115,14 @@ async def get_messages_api(roomid):
         return handle_error("Error getting messages", e)
 
 @app.route('/api/create_room', methods=['POST'])
-async def create_room_api():
+def create_room_api():
     try:
         data = request.json
         app.logger.info(f"Create room API called with data: {data}")
         User1 = data['User1']
         User2 = data['User2']
 
-        await create_room(User1, User2)
+        create_room(User1, User2)
         app.logger.info(f"Room created successfully between {User1} and {User2}")
         return jsonify({'success': True, 'message': 'Chat created successfuly'}),  201
     except Exception as e:
@@ -131,12 +131,12 @@ async def create_room_api():
         return handle_error("Error creating room", e)
 
 @app.route('/api/send_message', methods=['POST'])
-async def send_message_api():
+def send_message_api():
     try:
         data = request.json
         app.logger.info(f"Send message API called with data: {data}")
         message = data['message']
-        await send_message(message)
+        send_message(message)
         app.logger.info(f"Message sent successfully: {message}")
         return jsonify({'success': True, 'message': 'Message sent successfuly'}),  201
     except Exception as e:
@@ -145,13 +145,13 @@ async def send_message_api():
         return handle_error("Error sending message", e)
 
 @app.route('/api/send_message_nimbus', methods=['POST'])
-async def send_message_nimbus_api():
+def send_message_nimbus_api():
     try:
         data = request.json
         app.logger.info(f"Send message to Nimbus API called with data: {data}")
         message = data['message']
         app.logger.info(f"Message to Nimbus API sent successfuly")
-        await chat_with_nimbus(message)
+        chat_with_nimbus(message)
         return jsonify({'success': True, 'message': 'Message sent successfuly'}),  201
     except Exception as e:
         app.logger.error(f"Error sending message to nimbus: {e}")
@@ -159,7 +159,7 @@ async def send_message_nimbus_api():
         return handle_error("Error sending message to nimbus", e)
 
 @app.route('/api/send_file', methods=['POST'])
-async def send_file_api():
+def send_file_api():
     try:
         room_id = request.form.get('roomid')  # Get the room ID from the form
         file = request.files['file']  # Get the uploaded file
@@ -168,7 +168,7 @@ async def send_file_api():
 
         app.logger.info(f"Sending file to room {room_id}, {file_name}, {file_data}")
         # Call the Azure function to upload the file
-        await send_file(room_id, file_data, file_name)
+        send_file(room_id, file_data, file_name)
         app.logger.info(f"Sending file to room successfuly")
 
         return jsonify({'success': True, 'message': 'Image sent successfully'}), 201
@@ -178,11 +178,11 @@ async def send_file_api():
         return handle_error("Error sending file", e)
 
 @app.route('/api/get_files/<room_id>', methods=['GET'])
-async def get_files_api(room_id):
+def get_files_api(room_id):
     try:
         app.logger.info(f"Getting files from room {room_id}")
         # Call the Azure function to get files
-        files = await get_files(room_id)
+        files = get_files(room_id)
         app.logger.info(f"Success getting files from room {room_id}")
         return jsonify({'success': True, 'files': files}), 200
     except Exception as e:

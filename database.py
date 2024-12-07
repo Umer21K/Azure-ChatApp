@@ -1,4 +1,4 @@
-from azure.cosmos.aio import CosmosClient
+from azure.cosmos import CosmosClient, exceptions
 import os
 import kv
 import gemini
@@ -14,28 +14,28 @@ DATABASE_NAME = 'Batey'
 USERS = 'User_Info'
 ROOMS = 'Chat_Rooms'
 
-# Asynchronous function to add a user
-async def add_user(name, password, email):
-    async with CosmosClient(URL, credential=KEY) as client:
+# Synchronous function to add a user
+def add_user(name, password, email):
+    with CosmosClient(URL, credential=KEY) as client:
         database = client.get_database_client(DATABASE_NAME)
         users = database.get_container_client(USERS)
-    
-        #  Use COUNT(*) to check if user already exists
+
+        # Use COUNT(*) to check if user already exists
         username_exists_query = f"SELECT VALUE COUNT(1) FROM c WHERE c.name = '{name}' OR c.email = '{email}'"
 
         # Execute the query and check the count
         count = 0
-        async for item in users.query_items(query=username_exists_query):
+        for item in users.query_items(query=username_exists_query, enable_cross_partition_query=True):
             count = item
 
         print(count)
-        
+
         if count == 0:
             # Query to find the highest existing ID
             query = "SELECT VALUE MAX(c.id) FROM c"
-            items = users.query_items(query=query)  # Query to get the max id
+            items = users.query_items(query=query, enable_cross_partition_query=True)  # Query to get the max id
             max_id = 0
-            async for item in items:
+            for item in items:
                 if item is not None:
                     max_id = int(item)
 
@@ -53,68 +53,15 @@ async def add_user(name, password, email):
             }
 
             # Add the new user to the database
-            await users.upsert_item(user_item)
+            users.upsert_item(user_item)
 
-            await create_room(str(new_id), '1')
+            create_room(str(new_id), '1')
             return user_item
         else:
             return None
-    
-async def create_room(User1, User2):
-    async with CosmosClient(URL, credential=KEY) as client:
-        database = client.get_database_client(DATABASE_NAME)
-        rooms = database.get_container_client(ROOMS)
         
-        # Create a unique chatroom ID regardless of message direction
-        chatroom_id = f"{min(User1, User2)}_{max(User1, User2)}"
-
-        # Query to check if the chatroom already exists using COUNT(1)
-        query = f"SELECT VALUE COUNT(1) FROM c WHERE c.id = '{chatroom_id}'"
-        chatroom_exists = False
-        async for item in rooms.query_items(query=query):
-            chatroom_exists = item > 0  # item will be the count of matching documents
-
-        # If chatroom doesn't exist, create a new one
-        if not chatroom_exists:
-            chatroom = {
-                'id': chatroom_id,
-                'User1': User1,
-                'User2': User2,
-                'messages': []
-            }
-        
-            # Update the chatroom in the database
-            await rooms.upsert_item(chatroom)
-
-async def send_message(new_message):
-    async with CosmosClient(URL, credential=KEY) as client:
-        database = client.get_database_client(DATABASE_NAME)
-        rooms = database.get_container_client(ROOMS)
-
-        # Create a unique chatroom ID regardless of message direction
-        chatroom_id = f"{min(new_message['SenderID'], new_message['ReceiverID'])}_{max(new_message['SenderID'], new_message['ReceiverID'])}"
-
-        # Query to check if the chatroom already exists
-        query = f"SELECT * FROM c WHERE c.id = '{chatroom_id}'"
-        async for item in rooms.query_items(query=query):
-            chatroom = item
-            # Append the new message to the chatroom's message list
-            message = {
-                'SenderID': new_message['SenderID'],
-                'ReceiverID': new_message['ReceiverID'],
-                'MessageText': new_message['MessageText'],
-                'Timestamp': new_message['Timestamp']  # Current UTC timestamp
-            }
-            chatroom['messages'].append(message)
-
-            # Update the chatroom in the database
-            await rooms.upsert_item(chatroom)
-            break
-
-
-# Updated Asynchronous function to validate user
-async def validate_user(password, email):
-    async with CosmosClient(URL, credential=KEY) as client:
+def validate_user(password, email):
+    with CosmosClient(URL, credential=KEY) as client:
         database = client.get_database_client(DATABASE_NAME)
         users = database.get_container_client(USERS)
 
@@ -124,9 +71,8 @@ async def validate_user(password, email):
         # Query to check if the user exists with the given email
         query = f"SELECT * FROM c WHERE c.email = '{email}'"
         user_found = False
-        
-        
-        async for item in users.query_items(query=query):
+
+        for item in users.query_items(query=query, enable_cross_partition_query=True):
             user_found = True
             user_id = item['id']  # Retrieve user ID
 
@@ -144,9 +90,59 @@ async def validate_user(password, email):
         if not user_found:
             return None
         
-# Asynchronous function to get all other users except the specified user
-async def get_other_users(userid):
-    async with CosmosClient(URL, credential=KEY) as client:
+def create_room(User1, User2):
+    with CosmosClient(URL, credential=KEY) as client:
+        database = client.get_database_client(DATABASE_NAME)
+        rooms = database.get_container_client(ROOMS)
+        
+        # Create a unique chatroom ID regardless of message direction
+        chatroom_id = f"{min(User1, User2)}_{max(User1, User2)}"
+
+        # Query to check if the chatroom already exists using COUNT(1)
+        query = f"SELECT VALUE COUNT(1) FROM c WHERE c.id = '{chatroom_id}'"
+        chatroom_exists = False
+        for item in rooms.query_items(query=query):
+            chatroom_exists = item > 0  # item will be the count of matching documents
+
+        # If chatroom doesn't exist, create a new one
+        if not chatroom_exists:
+            chatroom = {
+                'id': chatroom_id,
+                'User1': User1,
+                'User2': User2,
+                'messages': []
+            }
+
+            # Update the chatroom in the database
+            rooms.upsert_item(chatroom)
+
+def send_message(new_message):
+    with CosmosClient(URL, credential=KEY) as client:
+        database = client.get_database_client(DATABASE_NAME)
+        rooms = database.get_container_client(ROOMS)
+
+        # Create a unique chatroom ID regardless of message direction
+        chatroom_id = f"{min(new_message['SenderID'], new_message['ReceiverID'])}_{max(new_message['SenderID'], new_message['ReceiverID'])}"
+
+        # Query to check if the chatroom already exists
+        query = f"SELECT * FROM c WHERE c.id = '{chatroom_id}'"
+        for item in rooms.query_items(query=query):
+            chatroom = item
+            # Append the new message to the chatroom's message list
+            message = {
+                'SenderID': new_message['SenderID'],
+                'ReceiverID': new_message['ReceiverID'],
+                'MessageText': new_message['MessageText'],
+                'Timestamp': new_message['Timestamp']  # Current UTC timestamp
+            }
+            chatroom['messages'].append(message)
+
+            # Update the chatroom in the database
+            rooms.upsert_item(chatroom)
+            break
+
+def get_other_users(userid):
+    with CosmosClient(URL, credential=KEY) as client:
         database = client.get_database_client(DATABASE_NAME)
         users = database.get_container_client(USERS)
         
@@ -155,7 +151,7 @@ async def get_other_users(userid):
         other_users = []
 
         # Fetch and store all other users in the list
-        async for item in users.query_items(query=query):
+        for item in users.query_items(query=query, enable_cross_partition_query=True):
             user_info = {
                 'userid': item['id'],
                 'username': item['name']
@@ -164,19 +160,18 @@ async def get_other_users(userid):
 
         return other_users  # Return the list of other user objects
 
-# Asynchronous function to get all other users except the specified user
-async def get_rooms(userid):
-    async with CosmosClient(URL, credential=KEY) as client:
+def get_rooms(userid):
+    with CosmosClient(URL, credential=KEY) as client:
         database = client.get_database_client(DATABASE_NAME)
         users = database.get_container_client(USERS)
         rooms = database.get_container_client(ROOMS)
         
-        # Query to select all users except the specified userid
+        # Query to select all rooms where the specified user is User1 or User2
         query = f"SELECT * FROM c WHERE c.User1 = '{userid}' OR c.User2 = '{userid}'"
         rooms_data = []
 
-        # Fetch and store all other users in the list
-        async for item in rooms.query_items(query=query):
+        # Fetch and store all room data in the list
+        for item in rooms.query_items(query=query, enable_cross_partition_query=True):
             room_info = {
                 'id': item['id'],
                 'User1': item['User1'],
@@ -184,34 +179,36 @@ async def get_rooms(userid):
             }
             rooms_data.append(room_info)
 
-        # Fetch all users for a manual join
+        # Query to fetch all users for a manual join
         query_users = f"SELECT c.id, c.name FROM c WHERE c.id != '{userid}'"
         users_dict = {}
-        async for item in users.query_items(query=query_users):
+        for item in users.query_items(query=query_users, enable_cross_partition_query=True):
             users_dict[item['id']] = item['name']
 
         rooms = []
-         # Combine room data with user names
+        # Combine room data with user names
         for room in rooms_data:
             # Try to fetch names for User1 and User2
             name1 = users_dict.get(room['User1'], "Unknown")  # Default to "Unknown" if not found
             name2 = users_dict.get(room['User2'], "Unknown")
 
             # Choose a name to display and set the other user id
-            if name1 != "Unknown":
-                room['name'] = name1
-                other_userid = room['User1']
-            else:
+            if room['User1'] == userid:
                 room['name'] = name2
                 other_userid = room['User2']
+            else:
+                room['name'] = name1
+                other_userid = room['User1']
 
             rooms.append({'roomid': room['id'], 'roomname': room['name'], 'userid': other_userid})
+
+        # Sort rooms by roomname
         rooms = sorted(rooms, key=lambda d: d['roomname'])
         
         return rooms
 
-async def get_messages(room_id):
-    async with CosmosClient(URL, credential=KEY) as client:
+def get_messages(room_id):
+    with CosmosClient(URL, credential=KEY) as client:
         database = client.get_database_client(DATABASE_NAME)
         rooms = database.get_container_client(ROOMS)
         
@@ -219,7 +216,7 @@ async def get_messages(room_id):
         query = f"SELECT * FROM c WHERE c.id = '{room_id}'"
         
         chatroom_data = None
-        async for item in rooms.query_items(query=query):
+        for item in rooms.query_items(query=query):
             chatroom_data = item  # Store the chatroom data
 
         # Extract messages if chatroom exists
@@ -233,17 +230,18 @@ async def get_messages(room_id):
         else:
             return []
 
-async def chat_with_nimbus(new_message):
-    async with CosmosClient(URL, credential=KEY) as client:
+def chat_with_nimbus(new_message):
+    with CosmosClient(URL, credential=KEY) as client:
         database = client.get_database_client(DATABASE_NAME)
         rooms = database.get_container_client(ROOMS)
 
         # Create a unique chatroom ID regardless of message direction
         chatroom_id = f"{min(new_message['SenderID'], new_message['ReceiverID'])}_{max(new_message['SenderID'], new_message['ReceiverID'])}"
 
+        # Get the response from the Gemini Nimbus system
         gemini_response = gemini.nimbus(new_message['MessageText'])
 
-        # Append the new message to the chatroom's message list
+        # Prepare the new message
         message = {
             'SenderID': new_message['SenderID'],
             'ReceiverID': new_message['ReceiverID'],
@@ -251,21 +249,22 @@ async def chat_with_nimbus(new_message):
             'Timestamp': new_message['Timestamp']  # Current UTC timestamp
         }
 
+        # Prepare the response message from Nimbus
         nimbus_message = {
-                # new message sender is now receiver
-                'SenderID': new_message['ReceiverID'],
-                'ReceiverID': new_message['SenderID'],
-                'MessageText': gemini_response,
-                'Timestamp': new_message['Timestamp'] # Current UTC timestamp
-            }
+            'SenderID': new_message['ReceiverID'],  # Sender and Receiver swapped
+            'ReceiverID': new_message['SenderID'],
+            'MessageText': gemini_response,
+            'Timestamp': new_message['Timestamp']  # Current UTC timestamp
+        }
 
         # Query to check if the chatroom already exists
         query = f"SELECT * FROM c WHERE c.id = '{chatroom_id}'"
-        async for item in rooms.query_items(query=query):
+        for item in rooms.query_items(query=query):
             chatroom = item
+            # Append the messages to the chatroom's message list
             chatroom['messages'].append(message)
             chatroom['messages'].append(nimbus_message)
 
             # Update the chatroom in the database
-            await rooms.upsert_item(chatroom)
+            rooms.upsert_item(chatroom)
             break

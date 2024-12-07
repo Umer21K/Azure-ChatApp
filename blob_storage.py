@@ -21,7 +21,7 @@ credentials = ClientSecretCredential(
 # BlobServiceClient
 blob_service_client = BlobServiceClient(account_url=account_url, credential=credentials)
 
-async def send_file(room_id, file_data, file_name):
+def send_file(room_id, file_data, file_name):
     """
     Creates a container with the name `room_id` if it doesn't exist
     and uploads the file to that container.
@@ -45,7 +45,7 @@ async def send_file(room_id, file_data, file_name):
     except Exception as e:
         print(f"Error in Azure upload: {e}")
 
-async def get_files(room_id):
+def get_files(room_id):
     """
     Retrieves all files from the container named `room_id`.
     """

@@ -34201,6 +34201,7 @@ var ChatPageComponent = class _ChatPageComponent {
         try {
           const response = yield this.chatService.getAllUsers(this.currentUserId);
           if (response.success) {
+            console.log("in here", response);
             this.allUsers = response.data;
           } else {
             this.alertService.emitErrorEvent("Error", response.message);
@@ -34223,8 +34224,22 @@ var ChatPageComponent = class _ChatPageComponent {
   createNewChat() {
     return __async(this, null, function* () {
       playKeyboardSound();
-      yield this.chatService.createRoom(this.selectedNewChatId, this.currentUserId);
-      this.rooms = yield this.chatService.getRooms(this.selectedChat.roomid);
+      try {
+        const response = yield this.chatService.createRoom(this.selectedNewChatId, this.currentUserId);
+        if (response.success) {
+          const r = yield this.chatService.getRooms(this.currentUserId);
+          if (r.success) {
+            this.rooms = r.data;
+          } else {
+            this.alertService.emitErrorEvent("Error", response.message);
+          }
+        } else {
+          this.alertService.emitErrorEvent("Error", response.message);
+        }
+      } catch (error) {
+        this.alertService.emitErrorEvent("Network Error", `Unable to connect to the server.${error.message}`);
+        console.log("Network Error", `Unable to connect to the server.${JSON.stringify(error)}`);
+      }
       this.selectedNewChatId = "-1";
       this.selectedNewChatName = "";
       this.showPopup = false;
@@ -34400,7 +34415,7 @@ var ChatPageComponent = class _ChatPageComponent {
   }
 };
 (() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(ChatPageComponent, { className: "ChatPageComponent", filePath: "src\\app\\chat-page\\chat-page.component.ts", lineNumber: 18 });
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(ChatPageComponent, { className: "ChatPageComponent", filePath: "src\\app\\chat-page\\chat-page.component.ts", lineNumber: 19 });
 })();
 
 // src/app/services/user.service.ts
@@ -39715,4 +39730,4 @@ var AppModule = class _AppModule {
 platformBrowser().bootstrapModule(AppModule, {
   ngZoneEventCoalescing: true
 }).catch((err) => console.error(err));
-//# sourceMappingURL=main-LJLSHEJD.js.map
+//# sourceMappingURL=main-HZCZXUT7.js.map
