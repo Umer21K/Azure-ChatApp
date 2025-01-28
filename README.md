@@ -1,5 +1,7 @@
-# Azure-Chatapp
-# Table of Contents
+# Azure-Chatapp Batein
+![image](https://github.com/user-attachments/assets/782e79ff-3bd6-4ed2-ba36-7ebbfbba1e9a)
+
+## Table of Contents
 1. **Project Overview**
 2. **Objectives**
 3. **Application Design and Architecture**  
@@ -127,3 +129,25 @@ This project highlights the potential of **Microsoft Azure** in building secure,
 ## References
 1. [Microsoft Azure Documentation](https://learn.microsoft.com/en-us/azure/)
 2. [Angular Official Documentation](https://angular.io/docs)
+
+## Appendices
+- registration page:
+![image](https://github.com/user-attachments/assets/ed0487ed-0d4a-40c4-a879-591717f38500)
+- login page:
+ ![image](https://github.com/user-attachments/assets/3270b423-cc8d-4212-8544-23645ffa5c86)
+ - chatbot:
+ ![image](https://github.com/user-attachments/assets/377488be-cabc-4ce6-91b2-3620efb31c07)
+- chat page:
+ ![image](https://github.com/user-attachments/assets/bd9a3fee-d8e4-4a5c-a72c-c06eb4418750)
+- select newchat:
+ ![image](https://github.com/user-attachments/assets/683fecb7-2243-4fc2-a512-82659c679c03)
+- chat between two user:
+ ![image](https://github.com/user-attachments/assets/ab596e95-558d-4870-bc68-bf5912efccfd)
+
+
+
+ 
+
+
+
+
